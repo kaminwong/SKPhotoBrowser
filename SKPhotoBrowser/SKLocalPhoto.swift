@@ -10,7 +10,8 @@ import UIKit
 
 // MARK: - SKLocalPhoto
 open class SKLocalPhoto: NSObject, SKPhotoProtocol {
-    
+    open var videoURL: String!
+    open var isVideo: Bool = false
     open var underlyingImage: UIImage!
     open var photoURL: String!
     open var contentMode: UIView.ContentMode = .scaleToFill

@@ -14,7 +14,6 @@ public let SKPHOTO_LOADING_DID_END_NOTIFICATION = "photoLoadingDidEndNotificatio
 open class SKPhotoBrowser: UIViewController {
     // open function
     open var currentPageIndex: Int = 0
-    open var initPageIndex: Int = 0
     open var activityItemProvider: UIActivityItemProvider?
     open var photos: [SKPhotoProtocol] = []
     
@@ -23,9 +22,8 @@ open class SKPhotoBrowser: UIViewController {
     // appearance
     fileprivate let bgColor: UIColor = SKPhotoBrowserOptions.backgroundColor
     // animation
-    let animator: SKAnimator = .init()
+    fileprivate let animator: SKAnimator = .init()
     
-    // child component
     fileprivate var actionView: SKActionView!
     fileprivate(set) var paginationView: SKPaginationView!
     var toolbar: SKToolbar!
@@ -54,7 +52,7 @@ open class SKPhotoBrowser: UIViewController {
     
     // strings
     open var cancelTitle = "Cancel"
-
+    
     // MARK: - Initializer
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -70,7 +68,7 @@ open class SKPhotoBrowser: UIViewController {
         self.init(photos: photos, initialPageIndex: 0)
     }
     
-    @available(*, deprecated)
+    @available(*, deprecated: 5.0.0)
     public convenience init(originImage: UIImage, photos: [SKPhotoProtocol], animatedFromView: UIView) {
         self.init(nibName: nil, bundle: nil)
         self.photos = photos
@@ -84,7 +82,6 @@ open class SKPhotoBrowser: UIViewController {
         self.photos = photos
         self.photos.forEach { $0.checkCache() }
         self.currentPageIndex = min(initialPageIndex, photos.count - 1)
-        self.initPageIndex = self.currentPageIndex
         animator.senderOriginImage = photos[currentPageIndex].underlyingImage
         animator.senderViewForAnimation = photos[currentPageIndex] as? UIView
     }
@@ -155,6 +152,16 @@ open class SKPhotoBrowser: UIViewController {
         super.viewDidAppear(true)
         isViewActive = true
     }
+    
+    //For enabling landscape mode in portrait mode only apps. Have to set up AppDelegate as well, refer to https://medium.com/@sunnyleeyun/swift-100-days-project-24-portrait-landscape-how-to-allow-rotate-in-one-vc-d717678301c1
+    @objc open func canRotate() -> Void {}
+    
+    override open func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        //Make sure the app goes back to portrait mode after leaving the browser
+        UIDevice.current.setValue(Int(UIInterfaceOrientation.portrait.rawValue), forKey: "orientation")
+    }
+    
     
     override open var prefersStatusBarHidden: Bool {
         return !SKPhotoBrowserOptions.displayStatusbar
@@ -289,7 +296,6 @@ public extension SKPhotoBrowser {
             }
             paginationView.update(currentPageIndex)
         }
-        self.initPageIndex = currentPageIndex
     }
     
     func jumpToPageAtIndex(_ index: Int) {
@@ -388,6 +394,7 @@ internal extension SKPhotoBrowser {
 // MARK: - Internal Function For Frame Calc
 
 internal extension SKPhotoBrowser {
+    
     func frameForToolbarAtOrientation() -> CGRect {
         let offset: CGFloat = {
             if #available(iOS 11.0, *) {
@@ -591,7 +598,7 @@ private extension SKPhotoBrowser {
         // action view animation
         actionView.animate(hidden: hidden)
         
-        if !hidden && !permanent {
+        if !permanent {
             hideControlsAfterDelay()
         }
         setNeedsStatusBarAppearanceUpdate()

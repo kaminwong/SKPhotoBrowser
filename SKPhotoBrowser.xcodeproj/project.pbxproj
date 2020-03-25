@@ -34,6 +34,7 @@
 		A64B89361CB04222000071B9 /* SKPhotoBrowserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64B89351CB04222000071B9 /* SKPhotoBrowserTests.swift */; };
 		A64B89381CB04222000071B9 /* SKPhotoBrowser.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8909B5301BC791280060A053 /* SKPhotoBrowser.framework */; };
 		D2265CCF1F799C75009256CC /* UIApplication+UIWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2265CCE1F799C75009256CC /* UIApplication+UIWindow.swift */; };
+		D35BF4CF242B18F1001540FA /* SKVideoPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D35BF4CE242B18F1001540FA /* SKVideoPlayerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 		A64B89351CB04222000071B9 /* SKPhotoBrowserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKPhotoBrowserTests.swift; sourceTree = "<group>"; };
 		A64B89371CB04222000071B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D2265CCE1F799C75009256CC /* UIApplication+UIWindow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIApplication+UIWindow.swift"; sourceTree = "<group>"; };
+		D35BF4CE242B18F1001540FA /* SKVideoPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SKVideoPlayerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				7643F4B31FE8CE7A00475F6E /* SKActionView.swift */,
+				D35BF4CE242B18F1001540FA /* SKVideoPlayerView.swift */,
 				89D0BA461D5994A8002A811B /* SKAnimator.swift */,
 				8917B1B31D5A14B0000CE1C4 /* SKButtons.swift */,
 				26C97AD41D0EB6870039F6CB /* SKCache.swift */,
@@ -242,6 +245,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 8909B5261BC791280060A053;
@@ -310,6 +314,7 @@
 				8909B5471BC791510060A053 /* SKPhoto.swift in Sources */,
 				8909B5461BC791510060A053 /* SKIndicatorView.swift in Sources */,
 				8917B1B41D5A14B0000CE1C4 /* SKButtons.swift in Sources */,
+				D35BF4CF242B18F1001540FA /* SKVideoPlayerView.swift in Sources */,
 				89C24A821D657AD1005F09A9 /* SKPhotoBrowserOptions.swift in Sources */,
 				26C97AD51D0EB6870039F6CB /* SKCache.swift in Sources */,
 				210E53EF1C986D57008DD5E3 /* UIImage+Rotation.swift in Sources */,

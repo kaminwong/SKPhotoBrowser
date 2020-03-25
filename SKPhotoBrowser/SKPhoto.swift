@@ -11,20 +11,24 @@ import UIKit
 @objc public protocol SKPhotoProtocol: NSObjectProtocol {
     var index: Int { get set }
     var underlyingImage: UIImage! { get }
+    var videoURL: String! { get }
     var caption: String? { get }
     var contentMode: UIView.ContentMode { get set }
+    var isVideo: Bool { get set }
     func loadUnderlyingImageAndNotify()
     func checkCache()
 }
 
 // MARK: - SKPhoto
 open class SKPhoto: NSObject, SKPhotoProtocol {
+    open var isVideo: Bool = false
     open var index: Int = 0
     open var underlyingImage: UIImage!
     open var caption: String?
     open var contentMode: UIView.ContentMode = .scaleAspectFill
     open var shouldCachePhotoURLImage: Bool = false
     open var photoURL: String!
+    open var videoURL: String!
 
     override init() {
         super.init()
@@ -44,6 +48,14 @@ open class SKPhoto: NSObject, SKPhotoProtocol {
         self.init()
         photoURL = url
         underlyingImage = holder
+    }
+    
+    convenience init(videourl: String, coverurl: String, cover: UIImage) {
+        self.init()
+        videoURL = videourl
+        photoURL = coverurl
+        underlyingImage = cover
+        isVideo = true
     }
     
     open func checkCache() {
@@ -120,5 +132,9 @@ extension SKPhoto {
     
     public static func photoWithImageURL(_ url: String, holder: UIImage?) -> SKPhoto {
         return SKPhoto(url: url, holder: holder)
+    }
+    
+    public static func videoWithVideoURL(videoURL: String, coverURL: String, cover: UIImage) -> SKPhoto {
+        return SKPhoto(videourl: videoURL, coverurl: coverURL, cover: cover)
     }
 }

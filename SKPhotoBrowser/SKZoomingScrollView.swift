@@ -7,27 +7,43 @@
 //
 
 import UIKit
+import AVKit
 
 open class SKZoomingScrollView: UIScrollView {
     var captionView: SKCaptionView!
     var photo: SKPhotoProtocol! {
         didSet {
+            
             imageView.image = nil
-            if photo != nil && photo.underlyingImage != nil {
-                displayImage(complete: true)
-                return
+            if photo.isVideo {
+                if photo != nil && photo.underlyingImage != nil {
+                    displayVideo(complete: true)
+                    return
+                }
+                if photo != nil {
+                    displayVideo(complete: false)
+                }
             }
-            if photo != nil {
-                displayImage(complete: false)
+            else {
+                if photo != nil && photo.underlyingImage != nil {
+                    displayImage(complete: true)
+                    return
+                }
+                if photo != nil {
+                    displayImage(complete: false)
+                }
             }
         }
     }
     
-    fileprivate weak var browser: SKPhotoBrowser?
+    //AVPlayer
+    var videoPlayerView: SKVideoPlayerView!
     
+    fileprivate weak var browser: SKPhotoBrowser?
     fileprivate(set) var imageView: SKDetectingImageView!
     fileprivate var tapView: SKDetectingView!
     fileprivate var indicatorView: SKIndicatorView!
+    
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -73,6 +89,7 @@ open class SKZoomingScrollView: UIScrollView {
         delegate = self
         showsHorizontalScrollIndicator = SKPhotoBrowserOptions.displayHorizontalScrollIndicator
         showsVerticalScrollIndicator = SKPhotoBrowserOptions.displayVerticalScrollIndicator
+        decelerationRate = .fast
         autoresizingMask = [.flexibleWidth, .flexibleTopMargin, .flexibleBottomMargin, .flexibleRightMargin, .flexibleLeftMargin]
     }
     
@@ -84,6 +101,8 @@ open class SKZoomingScrollView: UIScrollView {
         
         super.layoutSubviews()
         
+        
+        // Photo (or cover photo for the case of video)
         let boundsSize = bounds.size
         var frameToCenter = imageView.frame
         
@@ -104,6 +123,11 @@ open class SKZoomingScrollView: UIScrollView {
         if !imageView.frame.equalTo(frameToCenter) {
             imageView.frame = frameToCenter
         }
+            
+        // Video
+        if let _videoPlayerView = videoPlayerView {
+            _videoPlayerView.frame = self.bounds
+        }
     }
     
     open func setMaxMinZoomScalesForCurrentBounds() {
@@ -111,7 +135,8 @@ open class SKZoomingScrollView: UIScrollView {
         minimumZoomScale = 1
         zoomScale = 1
         
-        guard let imageView = imageView else {
+        guard let imageView = imageView,
+            let _photo = photo else {
             return
         }
         
@@ -143,6 +168,17 @@ open class SKZoomingScrollView: UIScrollView {
             // here if imageView.frame.width == deviceScreenWidth
             maxScale = 2.5
         }
+        
+        if _photo.isVideo {
+            //Cover photo cannot get zoomed
+            if UIApplication.shared.statusBarOrientation.isPortrait {
+                minScale = SKMesurement.screenWidth / imageView.frame.width
+                maxScale = SKMesurement.screenWidth / imageView.frame.width
+            } else {
+                maxScale = SKMesurement.screenHeight / imageView.frame.height
+                minScale = SKMesurement.screenHeight / imageView.frame.height
+            }
+        }
     
         maximumZoomScale = maxScale
         minimumZoomScale = minScale
@@ -152,7 +188,7 @@ open class SKZoomingScrollView: UIScrollView {
         // maximum zoom scale to 0.5
         // After changing this value, we still never use more
         /*
-        maxScale = maxScale / scale 
+        maxScale = maxScale / scale
         if maxScale < minScale {
             maxScale = minScale * 2
         }
@@ -167,28 +203,33 @@ open class SKZoomingScrollView: UIScrollView {
         photo = nil
         if captionView != nil {
             captionView.removeFromSuperview()
-            captionView = nil 
+            captionView = nil
         }
     }
     
-    open func displayImage(_ image: UIImage) {
-        // image
-        imageView.image = image
-        imageView.contentMode = photo.contentMode
-        
-        var imageViewFrame: CGRect = .zero
-        imageViewFrame.origin = .zero
-        // long photo
-        if SKPhotoBrowserOptions.longPhotoWidthMatchScreen && image.size.height >= image.size.width {
-            let imageHeight = SKMesurement.screenWidth / image.size.width * image.size.height
-            imageViewFrame.size = CGSize(width: SKMesurement.screenWidth, height: imageHeight)
+    // MARK: - video
+    open func displayVideo(complete flag: Bool) {
+        if !flag {
+            //No cover image loaded yet, download from the URL
+            if photo.underlyingImage == nil {
+                indicatorView.startAnimating()
+            }
+            photo.loadUnderlyingImageAndNotify()
         } else {
-            imageViewFrame.size = image.size
+            indicatorView.stopAnimating()
         }
-        imageView.frame = imageViewFrame
         
-        contentSize = imageViewFrame.size
-        setMaxMinZoomScalesForCurrentBounds()
+        //Display the cover image if there's one
+        if photo.underlyingImage != nil {
+            self.displayImage(complete: true)
+        }
+        
+        self.configMoviePlayer()
+    }
+    
+    func configMoviePlayer() {
+        videoPlayerView = SKVideoPlayerView(frame: self.bounds, video: self.photo)
+        self.addSubview(videoPlayerView)
     }
     
     // MARK: - image
@@ -208,11 +249,27 @@ open class SKZoomingScrollView: UIScrollView {
         }
         
         if let image = photo.underlyingImage, photo != nil {
-            displayImage(image)
-		} else {
-			// change contentSize will reset contentOffset, so only set the contentsize zero when the image is nil
-			contentSize = CGSize.zero
-		}
+            // image
+            imageView.image = image
+            imageView.contentMode = photo.contentMode
+
+            var imageViewFrame: CGRect = .zero
+            imageViewFrame.origin = .zero
+            // long photo
+            if SKPhotoBrowserOptions.longPhotoWidthMatchScreen && image.size.height >= image.size.width {
+                let imageHeight = SKMesurement.screenWidth / image.size.width * image.size.height
+                imageViewFrame.size = CGSize(width: SKMesurement.screenWidth, height: imageHeight)
+            } else {
+                imageViewFrame.size = image.size
+            }
+            imageView.frame = imageViewFrame
+
+            contentSize = imageViewFrame.size
+            setMaxMinZoomScalesForCurrentBounds()
+        } else {
+            // change contentSize will reset contentOffset, so only set the contentsize zero when the image is nil
+            contentSize = CGSize.zero
+        }
         setNeedsLayout()
     }
     
@@ -282,6 +339,7 @@ extension SKZoomingScrollView: SKDetectingViewDelegate {
     }
     
     func handleDoubleTap(_ view: UIView, touch: UITouch) {
+        guard let _photo = self.photo, !_photo.isVideo else { return }
         if SKPhotoBrowserOptions.enableZoomBlackArea == true {
             let needPoint = getViewFramePercent(view, touch: touch)
             handleDoubleTap(needPoint)
@@ -304,6 +362,7 @@ extension SKZoomingScrollView: SKDetectingImageViewDelegate {
     }
     
     func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
+        guard let _photo = self.photo, !_photo.isVideo else { return }
         handleDoubleTap(touchPoint)
     }
 }
