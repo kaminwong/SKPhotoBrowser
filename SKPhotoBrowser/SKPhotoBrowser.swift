@@ -17,7 +17,9 @@ open class SKPhotoBrowser: UIViewController {
     open var activityItemProvider: UIActivityItemProvider?
     open var photos: [SKPhotoProtocol] = []
     
-    internal lazy var pagingScrollView: SKPagingScrollView = SKPagingScrollView(frame: self.view.frame, browser: self)
+//    internal lazy var pagingScrollView: SKPagingScrollView = SKPagingScrollView(frame: self.view.frame, browser: self)
+    
+    fileprivate var pagingScrollView: SKPagingScrollView!
     
     // appearance
     fileprivate let bgColor: UIColor = SKPhotoBrowserOptions.backgroundColor
@@ -85,8 +87,10 @@ open class SKPhotoBrowser: UIViewController {
         animator.senderOriginImage = photos[currentPageIndex].underlyingImage
         animator.senderViewForAnimation = photos[currentPageIndex] as? UIView
     }
-
+    
+    //MARK: - TODO: Deinit never called
     deinit {
+        debugPrint("SKPhoto Browser deinit")
         NotificationCenter.default.removeObserver(self)
     }
     
@@ -115,6 +119,7 @@ open class SKPhotoBrowser: UIViewController {
     
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
+        
         reloadData()
         
         var i = 0
@@ -193,17 +198,23 @@ open class SKPhotoBrowser: UIViewController {
     
     // MARK: - initialize / setup
     open func reloadData() {
+        debugPrint("reloading data")
         performLayout()
         view.setNeedsLayout()
+        print("data reloaded")
+        //view.layoutIfNeeded()
     }
     
     open func performLayout() {
         isPerformingLayout = true
-
+        debugPrint("performing lyaout")
         // reset local cache
-        pagingScrollView.reload()
-        pagingScrollView.updateContentOffset(currentPageIndex)
-        pagingScrollView.tilePages()
+        if let psv = self.pagingScrollView {
+        psv.reload()
+        psv.updateContentOffset(currentPageIndex)
+        psv.tilePages()
+        }
+        
         
         delegate?.didShowPhotoAtIndex?(self, index: currentPageIndex)
         
@@ -218,6 +229,7 @@ open class SKPhotoBrowser: UIViewController {
         NSObject.cancelPreviousPerformRequests(withTarget: self)
     }
     
+    //MARK: - TODO: tmp fix of video deinit, memory leak
     open func dismissPhotoBrowser(animated: Bool, completion: (() -> Void)? = nil) {
         prepareForClosePhotoBrowser()
         if !animated {
@@ -225,6 +237,14 @@ open class SKPhotoBrowser: UIViewController {
         }
         dismiss(animated: !animated) {
             completion?()
+            //MARK: - TODO: tmp fix of video deinit, memory leak
+            debugPrint("dismissPhotoBrowser called")
+            if let psv = self.pagingScrollView, let page = psv.pageDisplayedAtIndex(self.currentPageIndex), page.videoPlayerView != nil{
+                page.videoPlayerView.removePlayer()
+                page.videoPlayerView.removeFromSuperview()
+                page.videoPlayerView = nil
+            }
+            self.pagingScrollView = nil
             self.delegate?.didDismissAtPageIndex?(self.currentPageIndex)
         }
     }
@@ -292,10 +312,13 @@ public extension SKPhotoBrowser {
         if isViewLoaded {
             jumpToPageAtIndex(index)
             if !isViewActive {
+                debugPrint("tileing pages form initializePageIndex")
                 pagingScrollView.tilePages()
             }
             paginationView.update(currentPageIndex)
         }
+        
+        debugPrint("Finish initilizing page index \(index)")
     }
     
     func jumpToPageAtIndex(_ index: Int) {
@@ -369,6 +392,10 @@ public extension SKPhotoBrowser {
         self.photos.insert(contentsOf: photos, at: index)
         self.reloadData()
     }
+    
+    func pageDisplayedAtIndex(_ index: Int) -> SKZoomingScrollView? {
+        return pagingScrollView.pageDisplayedAtIndex(index)
+    }
 }
 
 // MARK: - Internal Function
@@ -376,10 +403,6 @@ public extension SKPhotoBrowser {
 internal extension SKPhotoBrowser {
     func showButtons() {
         actionView.animate(hidden: false)
-    }
-    
-    func pageDisplayedAtIndex(_ index: Int) -> SKZoomingScrollView? {
-        return pagingScrollView.pageDisplayedAtIndex(index)
     }
     
     func getImageFromView(_ sender: UIView) -> UIImage {
@@ -554,6 +577,7 @@ private extension SKPhotoBrowser {
     }
     
     func configurePagingScrollView() {
+        pagingScrollView = SKPagingScrollView(frame: self.view.frame, browser: self)
         pagingScrollView.delegate = self
         view.addSubview(pagingScrollView)
     }

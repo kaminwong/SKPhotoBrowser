@@ -13,14 +13,16 @@ open class SKZoomingScrollView: UIScrollView {
     var captionView: SKCaptionView!
     var photo: SKPhotoProtocol! {
         didSet {
-            
+            debugPrint("did set photo")
             imageView.image = nil
             if photo.isVideo {
                 if photo != nil && photo.underlyingImage != nil {
-                    displayVideo(complete: true)
+                    debugPrint("layout video 1")
+                    displayVideo(complete: true)  //Complete denotes whether cover image is loaded
                     return
                 }
                 if photo != nil {
+                    debugPrint("layout video 2")
                     displayVideo(complete: false)
                 }
             }
@@ -37,7 +39,7 @@ open class SKZoomingScrollView: UIScrollView {
     }
     
     //AVPlayer
-    var videoPlayerView: SKVideoPlayerView!
+    open var videoPlayerView: SKVideoPlayerView!
     
     fileprivate weak var browser: SKPhotoBrowser?
     fileprivate(set) var imageView: SKDetectingImageView!
@@ -62,7 +64,19 @@ open class SKZoomingScrollView: UIScrollView {
     }
     
     deinit {
-        browser = nil
+        //MARK: - TODO: tmp fix of video deinit, memory leak
+        debugPrint("SKZoomingScrollView deinit at index \(photo.index)")
+        photo = nil
+        if captionView != nil {
+            captionView.removeFromSuperview()
+            captionView = nil
+        }
+        if videoPlayerView != nil {
+            videoPlayerView.removePlayer()
+            videoPlayerView.removeFromSuperview()
+            videoPlayerView = nil
+        }
+        self.browser = nil
     }
     
     func setup() {
@@ -100,7 +114,7 @@ open class SKZoomingScrollView: UIScrollView {
         indicatorView.frame = bounds
         
         super.layoutSubviews()
-        
+        debugPrint("layout subview SKZoomingScrollView")
         
         // Photo (or cover photo for the case of video)
         let boundsSize = bounds.size
@@ -126,6 +140,7 @@ open class SKZoomingScrollView: UIScrollView {
             
         // Video
         if let _videoPlayerView = videoPlayerView {
+            debugPrint("layoutSubview for videoPlayerView, frame is \(self.bounds)")
             _videoPlayerView.frame = self.bounds
         }
     }
@@ -200,10 +215,16 @@ open class SKZoomingScrollView: UIScrollView {
     }
     
     open func prepareForReuse() {
-        photo = nil
+        if photo != nil {
+            photo = nil
+        }
         if captionView != nil {
             captionView.removeFromSuperview()
             captionView = nil
+        }
+        if videoPlayerView != nil {
+            videoPlayerView.removeFromSuperview()
+            videoPlayerView = nil
         }
     }
     
@@ -229,6 +250,7 @@ open class SKZoomingScrollView: UIScrollView {
     
     func configMoviePlayer() {
         videoPlayerView = SKVideoPlayerView(frame: self.bounds, video: self.photo)
+        debugPrint("configMoviePlayer frame \(self.bounds)")
         self.addSubview(videoPlayerView)
     }
     

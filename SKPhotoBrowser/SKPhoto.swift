@@ -12,6 +12,7 @@ import UIKit
     var index: Int { get set }
     var underlyingImage: UIImage! { get }
     var videoURL: String! { get }
+    var videoID: String! { get }
     var caption: String? { get }
     var contentMode: UIView.ContentMode { get set }
     var isVideo: Bool { get set }
@@ -29,6 +30,7 @@ open class SKPhoto: NSObject, SKPhotoProtocol {
     open var shouldCachePhotoURLImage: Bool = false
     open var photoURL: String!
     open var videoURL: String!
+    open var videoID: String!
 
     override init() {
         super.init()
@@ -50,12 +52,13 @@ open class SKPhoto: NSObject, SKPhotoProtocol {
         underlyingImage = holder
     }
     
-    convenience init(videourl: String, coverurl: String, cover: UIImage) {
+    convenience init(videoID: String, videourl: String, coverurl: String, cover: UIImage) {
         self.init()
-        videoURL = videourl
-        photoURL = coverurl
-        underlyingImage = cover
-        isVideo = true
+        self.videoID = videoID
+        self.videoURL = videourl
+        self.photoURL = coverurl
+        self.underlyingImage = cover
+        self.isVideo = true
     }
     
     open func checkCache() {
@@ -134,7 +137,7 @@ extension SKPhoto {
         return SKPhoto(url: url, holder: holder)
     }
     
-    public static func videoWithVideoURL(videoURL: String, coverURL: String, cover: UIImage) -> SKPhoto {
-        return SKPhoto(videourl: videoURL, coverurl: coverURL, cover: cover)
+    public static func videoWithVideoURL(videoID: String, videoURL: String, coverURL: String, cover: UIImage) -> SKPhoto {
+        return SKPhoto(videoID: videoID, videourl: videoURL, coverurl: coverURL, cover: cover)
     }
 }

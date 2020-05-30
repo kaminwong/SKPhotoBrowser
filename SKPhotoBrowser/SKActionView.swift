@@ -92,6 +92,10 @@ extension SKActionView {
             closeButton = SKCloseButton(frame: .zero)
             closeButton.addTarget(self, action: #selector(closeButtonPressed(_:)), for: .touchUpInside)
             closeButton.isHidden = !SKPhotoBrowserOptions.displayCloseButton
+            closeButton.layer.shadowColor = UIColor.black.cgColor
+            closeButton.layer.shadowRadius = 1.0
+            closeButton.layer.shadowOpacity = 1.0
+            closeButton.layer.shadowOffset = CGSize(width: 0, height: 1)
             addSubview(closeButton)
         }
 
@@ -109,6 +113,10 @@ extension SKActionView {
             deleteButton = SKDeleteButton(frame: .zero)
             deleteButton.addTarget(self, action: #selector(deleteButtonPressed(_:)), for: .touchUpInside)
             deleteButton.isHidden = !SKPhotoBrowserOptions.displayDeleteButton
+            deleteButton.layer.shadowColor = UIColor.black.cgColor
+            deleteButton.layer.shadowRadius = 1.0
+            deleteButton.layer.shadowOpacity = 1.0
+            deleteButton.layer.shadowOffset = CGSize(width: 0, height: 1)
             addSubview(deleteButton)
         }
         

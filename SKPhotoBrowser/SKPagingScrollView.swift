@@ -38,6 +38,10 @@ class SKPagingScrollView: UIScrollView {
         updateFrame(bounds, currentPageIndex: browser.currentPageIndex)
     }
     
+    deinit {
+        debugPrint("SKPagingScrollView Deinit")
+    }
+    
     func reload() {
         visiblePages.forEach({$0.removeFromSuperview()})
         visiblePages.removeAll()
@@ -123,6 +127,7 @@ class SKPagingScrollView: UIScrollView {
             .forEach { page in
                 recycledPages.append(page)
                 page.prepareForReuse()
+                debugPrint("removing SKZoomingScrollView from SKPagingScrollView")
                 page.removeFromSuperview()
             }
         
@@ -140,12 +145,22 @@ class SKPagingScrollView: UIScrollView {
             }
             
             let page: SKZoomingScrollView = SKZoomingScrollView(frame: frame, browser: browser)
+            
+            //Added this for video that may be full screen, rendering out the scroll view which is not expected
+            page.isScrollEnabled = false
+            
             page.frame = frameForPageAtIndex(index)
             page.tag = index + pageIndexTagOffset
             page.photo = browser.photos[index]
             
             visiblePages.append(page)
+            debugPrint("adding SKZoomingScrollView to paging view")
             addSubview(page)
+            
+//            if page.photo.isVideo {
+//                let videoPlayerView: SKVideoPlayerView = SKVideoPlayerView(frame: frame, video: page.photo)
+//                page.videoPlayerView = videoPlayerView
+//            }
             
             // if exists caption, insert
             if let captionView: SKCaptionView = createCaptionView(index) {
